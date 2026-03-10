@@ -6,6 +6,7 @@ build/
 dist/
 .next/
 out/
+posthog-integration-nextjs-app-router/
 
 # environment variables
 .env
