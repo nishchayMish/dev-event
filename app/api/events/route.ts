@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
       }).end(buffer);
     });
 
+    let tags = JSON.parse(formData.get("tags") as string);
+    let agenda = JSON.parse(formData.get("agenda") as string);
+
     const body = {
       title: formData.get("title") as string,
       slug: formData.get("slug") as string,
@@ -43,7 +46,11 @@ export async function POST(req: NextRequest) {
       tags: (formData.get("tags") as string)?.split(",").map((s) => s.trim()),
     };
 
-    const event = await Event.create(body);
+    const event = await Event.create({
+      ...body,
+      tags,
+      agenda,
+    });
 
     return NextResponse.json(
       { success: true, data: event },
