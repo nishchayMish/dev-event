@@ -29,10 +29,13 @@ export const getEvents = async () => {
     try {
         await connectDB();
         const events = await Event.find().sort({ createdAt: -1 }).lean();
-        return JSON.parse(JSON.stringify(events));
+        return events.map((event) => ({
+            ...event,
+            _id: event._id.toString(),
+        }));
     } catch (error) {
         console.error("Error fetching events:", error);
-        return [];
+        throw error;
     }
 }
 
