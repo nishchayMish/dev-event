@@ -1,42 +1,7 @@
-export const events = [
-    {
-      title: "React Developer Summit 2026",
-      slug: "react-developer-summit-2026",
-      location: "Jaipur, Rajasthan",
-      date: "12 April 2026",
-      time: "10:00 AM",
-      image: "/images/event1.png",
-    },
-    {
-      title: "Startup Networking Meetup",
-      slug: "startup-networking-meetup-delhi",
-      location: "New Delhi, India",
-      date: "05 May 2026",
-      time: "04:00 PM",
-      image: "/images/event2.png",
-    },
-    {
-      title: "AI & Future Tech Conference",
-      slug: "ai-future-tech-conference-2026",
-      location: "Bangalore, India",
-      date: "18 June 2026",
-      time: "09:30 AM",
-      image: "/images/event3.png",
-    },
-    {
-      title: "UI/UX Design Masterclass",
-      slug: "ui-ux-design-masterclass",
-      location: "Chandigarh, India",
-      date: "25 April 2026",
-      time: "11:00 AM",
-      image: "/images/event4.png",
-    },
-    {
-      title: "Full Stack Bootcamp 2026",
-      slug: "full-stack-bootcamp-2026",
-      location: "Hyderabad, India",
-      date: "10 July 2026",
-      time: "08:00 AM",
-      image: "/images/event5.png",
-    },
-];
+const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+if (!rawBaseUrl) {
+    throw new Error("Missing NEXT_PUBLIC_BASE_URL");
+}
+
+export const BASE_URL = rawBaseUrl.replace(/\/$/, "");
