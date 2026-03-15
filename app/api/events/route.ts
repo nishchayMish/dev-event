@@ -4,30 +4,40 @@ import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 
 export async function POST(req: NextRequest) {
+  let uploadResult: any = null;
+
   try {
     await connectDB();
-
     const formData = await req.formData();
 
-    // Extract the image file
-    const file = formData.get("image") as File;
-    if (!file) {
+    // Parse JSON FIRST
+    const tags = JSON.parse(formData.get("tags") as string);
+    const agenda = JSON.parse(formData.get("agenda") as string);
+
+    // Validate image
+    const file = formData.get("image");
+    if (!(file instanceof File) || file.size === 0) {
       return NextResponse.json(
         { success: false, error: "Image file is required" },
         { status: 400 }
       );
     }
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const uploadResult = await new Promise((res, rej) => {
-      cloudinary.uploader.upload_stream({ resource_type: "image", folder: "DevEvent" }, (err, result) => {
-        if (err) return rej(err);
-        res(result);
-      }).end(buffer);
-    });
 
-    let tags = JSON.parse(formData.get("tags") as string);
-    let agenda = JSON.parse(formData.get("agenda") as string);
+    // Upload image
+    uploadResult = await new Promise((res, rej) => {
+      cloudinary.uploader
+        .upload_stream(
+          { resource_type: "image", folder: "DevEvent" },
+          (err, result) => {
+            if (err) return rej(err);
+            res(result);
+          }
+        )
+        .end(buffer);
+    });
 
     const body = {
       title: formData.get("title") as string,
@@ -41,22 +51,25 @@ export async function POST(req: NextRequest) {
       time: formData.get("time") as string,
       mode: (formData.get("mode") as string)?.toLowerCase(),
       audience: formData.get("audience") as string,
-      agenda: (formData.get("agenda") as string)?.split(",").map((s) => s.trim()),
       organizer: formData.get("organizer") as string,
-      tags: (formData.get("tags") as string)?.split(",").map((s) => s.trim()),
-    };
-
-    const event = await Event.create({
-      ...body,
       tags,
       agenda,
-    });
+    };
+
+    const event = await Event.create(body);
 
     return NextResponse.json(
       { success: true, data: event },
       { status: 201 }
     );
-  } catch (error: unknown) {
+
+  } catch (error: any) {
+
+    // CLEANUP CLOUDINARY IMAGE IF DB FAILS
+    if (uploadResult?.public_id) {
+      await cloudinary.uploader.destroy(uploadResult.public_id);
+    }
+
     if (error instanceof Error && error.name === "ValidationError") {
       return NextResponse.json(
         { success: false, error: error.message },
