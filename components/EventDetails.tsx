@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import EventCard from "@/components/EventCard";
-import { BASE_URL } from '@/lib/constants';
 import { IEvent } from '@/db/eventModel';
 import BookEvent from './BookEvent';
-import { getSimilarEventsBySlug } from "@/lib/eventActions";
+import { getSimilarEventsBySlug, getEventBySlug } from "@/lib/eventActions";
 
 
 const EventDetailItem = ({ icon, alt, label }: { icon: string; alt: string; label: string; }) => (
@@ -36,27 +35,9 @@ const EventTags = ({ tags }: { tags: string[] }) => (
 const EventDetails = async ({ params }: { params: Promise<string> }) => {
     const slug = await params;
 
-    let event;
-    try {
-        const request = await fetch(`${BASE_URL}/events/${slug}`, {
-            next: { revalidate: 60 }
-        });
+    const event = await getEventBySlug(slug) as IEvent | null;
 
-        if (!request.ok) {
-            if (request.status === 404) {
-                return notFound();
-            }
-            throw new Error(`Failed to fetch event: ${request.statusText}`);
-        }
-
-        const response = await request.json();
-        event = response.data;
-
-        if (!event) {
-            return notFound();
-        }
-    } catch (error) {
-        console.error('Error fetching event:', error);
+    if (!event) {
         return notFound();
     }
 
@@ -67,7 +48,6 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
     const bookings = 10;
 
     const similarEvents: IEvent[] = await getSimilarEventsBySlug(slug);
-    console.log(similarEvents, "jhbjhvj")
 
     return (
         <section id="event">
@@ -118,7 +98,7 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
                             <p className="text-sm">Be the first to book your spot!</p>
                         )}
 
-                        <BookEvent eventId={event._id} slug={event.slug} />
+                        <BookEvent eventId={event._id.toString()} slug={event.slug} />
                     </div>
                 </aside>
             </div>

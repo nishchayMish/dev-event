@@ -1,15 +1,13 @@
 import EventCard from "@/components/EventCard"
 import ExploreBtn from "@/components/ExploreBtn"
 import { IEvent } from "@/db/eventModel"
-import { BASE_URL } from "@/lib/constants"
+import { getEvents } from "@/lib/eventActions"
 import { cacheLife } from "next/cache"
 
 const Page = async () => {
   'use cache';
   cacheLife('hours')
-  const res = await fetch(`${BASE_URL}/events`)
-  const events = await res.json()
-  const { data } = events
+  const data = await getEvents() as IEvent[]
 
 
   return (
