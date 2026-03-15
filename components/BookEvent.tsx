@@ -16,7 +16,7 @@ const BookEvent = ({ eventId, slug }: { eventId: string, slug: string; }) => {
 
         setIsSubmitting(true);
         try {
-            const { success } = await createBooking({ eventId, slug, email });
+            const { success } = await createBooking({ eventId, email });
 
             if (success) {
                 setSubmitted(true);
