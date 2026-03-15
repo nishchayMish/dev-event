@@ -8,17 +8,28 @@ const BookEvent = ({ eventId, slug }: { eventId: string, slug: string; }) => {
     const [email, setEmail] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmitting) return;
 
-        const { success } = await createBooking({ eventId, slug, email });
+        setIsSubmitting(true);
+        try {
+            const { success } = await createBooking({ eventId, slug, email });
 
-        if (success) {
-            setSubmitted(true);
-            posthog.capture('event_booked', { eventId, slug, email })
-        } else {
-            console.error('Booking creation failed')
-            posthog.captureException('Booking creation failed')
+            if (success) {
+                setSubmitted(true);
+                posthog.capture('event_booked', { eventId, slug, email });
+            } else {
+                console.error('Booking creation failed');
+                posthog.captureException(new Error('Booking creation failed'));
+            }
+        } catch (error) {
+            console.error('Error during booking creation:', error);
+            posthog.captureException(error);
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -39,7 +50,9 @@ const BookEvent = ({ eventId, slug }: { eventId: string, slug: string; }) => {
                         />
                     </div>
 
-                    <button type="submit" className="button-submit">Submit</button>
+                    <button type="submit" className="button-submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                    </button>
                 </form>
             )}
         </div>

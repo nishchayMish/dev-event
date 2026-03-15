@@ -23,6 +23,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate and normalize slug
+    const rawSlug = formData.get("slug") as string;
+    if (!rawSlug || rawSlug.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: "Slug is required" },
+        { status: 400 }
+      );
+    }
+
+    const slug = rawSlug
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^\w-]+/g, "")
+      .replace(/--+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+
+    if (!slug) {
+      return NextResponse.json(
+        { success: false, error: "Invalid slug" },
+        { status: 400 }
+      );
+    }
+
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -41,7 +67,8 @@ export async function POST(req: NextRequest) {
 
     const body = {
       title: formData.get("title") as string,
-      slug: formData.get("slug") as string,
+      slug: slug,
+
       description: formData.get("description") as string,
       overview: formData.get("overview") as string,
       image: (uploadResult as { secure_url: string }).secure_url,
@@ -70,12 +97,20 @@ export async function POST(req: NextRequest) {
       await cloudinary.uploader.destroy(uploadResult.public_id);
     }
 
+    if (error.code === 11000 || error.name === "MongoServerError") {
+      return NextResponse.json(
+        { success: false, error: "An event with this slug already exists" },
+        { status: 409 }
+      );
+    }
+
     if (error instanceof Error && error.name === "ValidationError") {
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 400 }
       );
     }
+
 
     console.error("Error creating event:", error);
     return NextResponse.json(
