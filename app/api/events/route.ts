@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       await cloudinary.uploader.destroy(uploadResult.public_id);
     }
 
-    if (error.code === 11000 || error.name === "MongoServerError") {
+    if (error.code === 11000) {
       return NextResponse.json(
         { success: false, error: "An event with this slug already exists" },
         { status: 409 }
