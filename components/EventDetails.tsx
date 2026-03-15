@@ -4,6 +4,7 @@ import EventCard from "@/components/EventCard";
 import { IEvent } from '@/db/eventModel';
 import BookEvent from './BookEvent';
 import { getSimilarEventsBySlug, getEventBySlug } from "@/lib/eventActions";
+import { getBookingCountByEventId } from "@/lib/bookingActions";
 
 
 const EventDetailItem = ({ icon, alt, label }: { icon: string; alt: string; label: string; }) => (
@@ -45,7 +46,7 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
 
     if (!description) return notFound();
 
-    const bookings = 10;
+    const bookings = await getBookingCountByEventId(event._id.toString());
 
     const similarEvents: IEvent[] = await getSimilarEventsBySlug(slug);
 
@@ -92,7 +93,7 @@ const EventDetails = async ({ params }: { params: Promise<string> }) => {
                         <h2>Book Your Spot</h2>
                         {bookings > 0 ? (
                             <p className="text-sm">
-                                Join {bookings} people who have already booked their spot!
+                                Join {bookings} {bookings === 1 ? 'person' : 'people'} who have already booked their spot!
                             </p>
                         ) : (
                             <p className="text-sm">Be the first to book your spot!</p>

@@ -16,3 +16,14 @@ export const createBooking = async ({ eventId, slug, email }: { eventId: string;
         return { success: false };
     }
 }
+
+export const getBookingCountByEventId = async (eventId: string) => {
+    try {
+        await connectDB();
+        const count = await Booking.countDocuments({ eventId });
+        return count;
+    } catch (e) {
+        console.error('get booking count failed', e);
+        return 0;
+    }
+}
